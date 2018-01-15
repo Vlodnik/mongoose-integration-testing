@@ -125,9 +125,41 @@ describe('Blogposts API resource', function() {
     });
   });
 
-  // describe('PUT endpoint', function() {
+  describe('PUT endpoint', function() {
 
-  // });
+    it('should update fields that are sent', function() {
+      const updateData = {
+        title: 'etetetetet',
+        content: 'testtesttest',
+        author: {
+          firstName: '20',
+          lastName: '20'
+        }
+      };
+
+      return BlogPost
+        .findOne()
+        .then(function(blogpost) {
+          updateData.id = blogpost.id;
+          updateData.created = blogpost.created;
+
+          return chai.request(app)
+            .put(`/posts/${ updateData.id }`)
+            .send(updateData)
+        })
+        .then(function(res) {
+          expect(res).to.have.status(204);
+
+          return BlogPost.findById(updateData.id);
+        })
+        .then(function(blogpost) {
+          expect(blogpost.title).to.equal(updateData.title);
+          expect(blogpost.content).to.equal(updateData.content);
+          expect(blogpost.author.firstName).to.equal(updateData.author.firstName);
+          expect(blogpost.author.lastName).to.equal(updateData.author.lastName);
+        });
+    });
+  });
 
   // describe('DELETE endpoint', function() {
 
