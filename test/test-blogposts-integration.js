@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 
 const expect = chai.expect;
 
-const { Blogpost } = require('../models');
+const { BlogPost } = require('../models');
 const { app, runServer, closeServer } = require('../server');
 const { TEST_DATABASE_URL } = require('../config');
 
@@ -17,11 +17,11 @@ function seedBlogpostData() {
   console.info('seeding blogpost data');
   const seedData = [];
 
-  for(i = 1; i <= 10; i++) {
+  for(let i = 1; i <= 10; i++) {
     seedData.push(generateBlogpostData());
   }
 
-  return Blogpost.insertMany(seedData);
+  return BlogPost.insertMany(seedData);
 }
 
 function generateBlogpostData() {
@@ -31,7 +31,7 @@ function generateBlogpostData() {
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName()
     },
-    content: faker.lorem.paragraph();
+    content: faker.lorem.paragraph()
   };
 }
 
@@ -43,7 +43,7 @@ function tearDownDb() {
 describe('Blogposts API resource', function() {
 
   before(function() {
-    return runserver(TEST_DATABASE_URL);
+    return runServer(TEST_DATABASE_URL);
   });
 
   beforeEach(function() {
@@ -60,17 +60,57 @@ describe('Blogposts API resource', function() {
 
   describe('GET endpoint', function() {
 
+    it('should return all existing blogposts', function() {
+      let res;
+      return chai.request(app)
+        .get('/posts')
+        .then(function(_res) {
+          res = _res;
+          expect(res).to.have.status(200);
+          expect(res.body).to.have.length.of.at.least(1);
+          return BlogPost.count();
+        })
+        .then(function(count) {
+          expect(res.body).to.have.length(count);
+        });
+    });
+
+    it('should return blogposts with correct fields', function() {
+      let resBlogpost;
+      return chai.request(app)
+        .get('/posts')
+        .then(function(res) {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+
+          res.body.forEach(function(blogpost) {
+            expect(blogpost).to.be.a('object');
+            expect(blogpost).to.include.keys(
+              'id', 'title', 'author', 'content', 'created');
+          })
+          resBlogpost = res.body[0];
+          return BlogPost.findById(resBlogpost.id);
+        })
+        .then(function(blogpost) {
+          expect(blogpost.id).to.equal(resBlogpost.id);
+          expect(blogpost.title).to.equal(resBlogpost.title);
+          expect(blogpost.author).to.not.be.null;
+          expect(blogpost.content).to.equal(resBlogpost.content);
+          expect(blogpost.created).to.not.be.null;
+        });
+    });
   });
 
-  describe('POST endpoint', function() {
+  // describe('POST endpoint', function() {
+    
+  // });
 
-  });
+  // describe('PUT endpoint', function() {
 
-  describe('PUT endpoint', function() {
+  // });
 
-  });
+  // describe('DELETE endpoint', function() {
 
-  describe('DELETE endpoint', function() {
-
-  });
+  // });
 });
