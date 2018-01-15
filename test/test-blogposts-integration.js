@@ -102,9 +102,28 @@ describe('Blogposts API resource', function() {
     });
   });
 
-  // describe('POST endpoint', function() {
-    
-  // });
+  describe('POST endpoint', function() {
+
+    it('should create a new blog post', function() {
+      const newPost = generateBlogpostData();
+
+      return chai.request(app)
+        .post('/posts')
+        .send(newPost)
+        .then(function(res) {
+          expect(res).to.have.status(201);
+          expect(res).to.be.json;
+          expect(res.body).to.include.keys(
+            'id', 'title', 'author', 'content', 'created');
+          expect(res.body.id).to.not.be.null;
+          expect(res.body.created).to.not.be.null;
+
+          expect(res.body.title).to.equal(newPost.title);
+          expect(res.body.author).to.equal(`${ newPost.author.firstName } ${ newPost.author.lastName }`);
+          expect(res.body.content).to.equal(newPost.content);
+        })
+    });
+  });
 
   // describe('PUT endpoint', function() {
 
